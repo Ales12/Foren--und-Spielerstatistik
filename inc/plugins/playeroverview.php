@@ -11,9 +11,9 @@ function playeroverview_info()
     return array(
         "name"            => "Foren- und Spielerstatistik",
         "description"    => "Eine Foren- und Spielerstatistik. Diagramme wurden mit der Open Sorce chart.js erstellt.",
-        "website"        => "https://github.com/Ales12",
+        "website"        => "https://github.com/Ales12/Foren--und-Spielerstatistik",
         "author"        => "Ales",
-        "authorsite"    => "",
+        "authorsite"    => "https://github.com/Ales12",
         "version"        => "1.0",
         "guid"             => "",
         "codename"        => "",
@@ -82,7 +82,7 @@ function playeroverview_install()
         ),
         'playeroverview_notcountaccounts' => array(
             'title' => 'Ausgegrenzte Account',
-            'description' => 'Gib hier an, welche FID das Profilfeld hat, in welches der Username gespeichert wird:',
+            'description' => 'Gib an, welche Accounts nicht beachtet werden sollen:',
             'optionscode' => "text",
             'value' => '1,2',
             'disporder' => 7
