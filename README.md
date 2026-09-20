@@ -3,9 +3,16 @@
 
 <br /><br />
 ## benötigte Plugins
-- Inplaytracker
-- Wer wohnt wo?
-- Joblist
+- [Joblist by Ales](https://github.com/Ales12/joblist)
+- [Wer wohnt wo? by Ales](https://github.com/Ales12/wholivewhere2.0)
+- [Inplaytracker 2.0 by Ales](https://github.com/Ales12/inplaytracker-2.0)
+
+## Eingefügt in den Templates
+**header**
+``{$menu_playeroverview}``
+<br />
+**headerinclude**
+``<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>``
 
 ## CSS
 <br /><br />
