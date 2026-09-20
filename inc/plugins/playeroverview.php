@@ -11,9 +11,9 @@ function playeroverview_info()
     return array(
         "name"            => "Foren- und Spielerstatistik",
         "description"    => "Eine Foren- und Spielerstatistik. Diagramme wurden mit der Open Sorce chart.js erstellt.",
-        "website"        => "https://github.com/Ales12/Foren--und-Spielerstatistik",
+        "website"        => "https://github.com/Ales12",
         "author"        => "Ales",
-        "authorsite"    => "https://github.com/Ales12",
+        "authorsite"    => "",
         "version"        => "1.0",
         "guid"             => "",
         "codename"        => "",
@@ -82,7 +82,7 @@ function playeroverview_install()
         ),
         'playeroverview_notcountaccounts' => array(
             'title' => 'Ausgegrenzte Account',
-            'description' => 'Gib an, welche Accounts nicht beachtet werden sollen:',
+            'description' => 'Gib hier an, welche FID das Profilfeld hat, in welches der Username gespeichert wird:',
             'optionscode' => "text",
             'value' => '1,2',
             'disporder' => 7
@@ -177,11 +177,11 @@ function playeroverview_install()
 		
 		</div>
 						<div class="po_box">	<div class="po_desc">{$lang->forumoverview_avaragewords}</div>
-			{$words}
+			{$averageWords}
 		
 		</div>
 								<div class="po_box"><div class="po_desc">{$lang->forumoverview_avaragcharacters}</div>
-			{$characters}
+			{$averageCharacters}
 		</div>
 		</div>
 		<h1>{$lang->forumoverview_characterdistribution}</h1>
@@ -225,39 +225,21 @@ function playeroverview_install()
  * =========================================================
  */
 
-const chartColors = [
+const rootStyles = getComputedStyle(document.documentElement);
 
-    getComputedStyle(document.documentElement)
-        .getPropertyValue(\'--chart-color-1\')
-        .trim(),
+const chartColors = [];
 
-    getComputedStyle(document.documentElement)
-        .getPropertyValue(\'--chart-color-2\')
-        .trim(),
+for (let i = 1; i <= 20; i++) {
+    const color = rootStyles
+        .getPropertyValue(\'--chart-color-\' + i)
+        .trim();
 
-    getComputedStyle(document.documentElement)
-        .getPropertyValue(\'--chart-color-3\')
-        .trim(),
+    chartColors.push(color);
+}
 
-    getComputedStyle(document.documentElement)
-        .getPropertyValue(\'--chart-color-4\')
-        .trim(),
-
-    getComputedStyle(document.documentElement)
-        .getPropertyValue(\'--chart-color-5\')
-        .trim(),
-
-    getComputedStyle(document.documentElement)
-        .getPropertyValue(\'--chart-color-6\')
-        .trim()
-];
-
-
-const chartTextColor = getComputedStyle(document.documentElement)
+const chartTextColor = rootStyles
     .getPropertyValue(\'--chart-text-color\')
     .trim();
-
-
 /*
  * =========================================================
  * Werte über Balken
@@ -531,91 +513,107 @@ if (charaThreadsCanvas && {$chara_labels}.length > 0) {
  * Nur Playeroverview
  * =========================================================
  */
+const charaPostsCanvas = document.getElementById(\'charaPostsChart\');
 
-const charaPostsCanvas =
-    document.getElementById(\'charaPostsChart\');
-
-
-if (charaPostsCanvas && {$chara_post_labels}.length > 0) {
-
+if (
+    charaPostsCanvas &&
+    {$chara_post_labels}.length > 0
+) {
     new Chart(charaPostsCanvas, {
+        type: \'bar\',
 
-        type: \'pie\',
-
-        plugins: [htmlLegendPlugin],
+        plugins: [valueLabels],
 
         data: {
-
             labels: {$chara_post_labels},
 
             datasets: [{
-
                 data: {$chara_posts},
-
                 backgroundColor: chartColors,
-
-                borderWidth: 0
-
+                borderWidth: 0,
+                barThickness: 24
             }]
-
         },
 
-
         options: {
-
             responsive: true,
-
             maintainAspectRatio: false,
 
-
             plugins: {
-
-                /*
-                 * Chart.js Legende ausschalten
-                 */
                 legend: {
                     display: false
                 },
 
-
-                /*
-                 * Eigene HTML-Legende
-                 */
-                htmlLegend: {
-
-                    containerID:
-                        \'charaPostsLegend\'
-
-                },
-
-
                 tooltip: {
-
-                    callbacks: {
-
-                        label: function(context) {
-
-                            return \' \' +
-                                context.label +
-                                \': \' +
-                                context.raw +
-                                \' Posts\';
-
-                        }
-
-                    }
-
+                    enabled: false
                 }
+            },
 
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    },
+
+                    border: {
+                        display: false
+                    },
+
+ticks: {
+    color: chartTextColor,
+    font: {
+        size: 11
+    },
+    maxRotation: 45,
+    minRotation: 45,
+    callback: function(value) {
+        const label = this.getLabelForValue(value);
+
+        if (label.length > 12) {
+            const words = label.split(\' \');
+            const lines = [];
+            let line = \'\';
+
+            words.forEach(function(word) {
+                if ((line + \' \' + word).trim().length > 12) {
+                    lines.push(line.trim());
+                    line = word;
+                } else {
+                    line += \' \' + word;
+                }
+            });
+
+            if (line) {
+                lines.push(line.trim());
             }
 
+            return lines;
         }
 
-    });
-
+        return label;
+    }
 }
+                },
 
+                y: {
+                    beginAtZero: true,
 
+                    ticks: {
+                        display: false
+                    },
+
+                    grid: {
+                        display: false
+                    },
+
+                    border: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+}
 /*
  * =========================================================
  * GESCHLECHT
@@ -1201,22 +1199,13 @@ if (ageCanvas && {$age_labels}.length > 0) {
                 <canvas id="charaThreadsChart"></canvas>
             </div>
 			
-	        <div class="po_grid_overall">
+			<strong>{$lang->playeroverview_postsprochara}</strong>
+<div class="po_chart po_character_bar">
+    <canvas id="charaPostsChart"></canvas>
+</div>
+	        <div class="po_grid_two">
 				<div>
-            <strong>{$lang->playeroverview_postsprochara}</strong>
-
-            <div class="po_chart po_chart_pie po_character_pie" >
-
-                <canvas id="charaPostsChart"></canvas>
-
-                <div id="charaPostsLegend" class="po_chart_legend"></div>
-
-            </div>
-				</div>
-				<div>
-
             <strong>{$lang->playeroverview_charaprogender}</strong>
-
             <div class="po_chart po_chart_pie">
                 <canvas id="genderChart"></canvas>
             </div>
@@ -1283,12 +1272,27 @@ if (ageCanvas && {$age_labels}.length > 0) {
         'attachedto' => '',
         "stylesheet" => ':root {
 	/*allgemeine Chartsfarben*/
+		/*allgemeine Chartsfarben*/
     --chart-color-1: #9b7aa8;
     --chart-color-2: #d98b9c;
     --chart-color-3: #7fa7a8;
     --chart-color-4: #e5b84c;
     --chart-color-5: #8c8cae;
     --chart-color-6: #c97878;
+    --chart-color-7: #6f9f8f;
+    --chart-color-8: #c49a6c;
+    --chart-color-9: #8fa6c9;
+    --chart-color-10: #b58ca6;
+    --chart-color-11: #d08b5b;
+    --chart-color-12: #7c9b6e;
+    --chart-color-13: #a982b5;
+    --chart-color-14: #d1a3a3;
+    --chart-color-15: #70969a;
+    --chart-color-16: #c2a14e;
+    --chart-color-17: #9a7894;
+    --chart-color-18: #b87991;
+    --chart-color-19: #7e9e82;
+    --chart-color-20: #a88b72;
 
 	/*Gruppenfarben - müssen angepasst werden*/
     --group-1: #9b7aa8;
@@ -1651,6 +1655,7 @@ function playeroverview_misc()
         $year = $intvl->y;
         $month = $intvl->m;
         $day = $intvl->d;
+
         if ($year == 0 or $year > 1) {
             $year_text = $lang->sprintf($lang->forumoverview_years, $year);
         } else if ($year == 1) {
@@ -1696,7 +1701,6 @@ function playeroverview_misc()
                 $count_threads++;
             }
         }
-
         $query = $db->query("SELECT *
     FROM " . TABLE_PREFIX . "posts p
     LEFT JOIN " . TABLE_PREFIX . "threads t
@@ -1718,40 +1722,54 @@ function playeroverview_misc()
         }
 
         // aus dem Tutorial von aheartforspinach
-        $averageWords =  round($words / $count_posts, 2);
-        $averageCharacters =  round($characters / $count_posts, 2);
+        // aus dem Tutorial von aheartforspinach
+        if ($count_posts > 0) {
+            $averageWords = round($words / $count_posts, 2);
+            $averageCharacters = round($characters / $count_posts, 2);
+        } else {
+            $averageWords = 0;
+            $averageCharacters = 0;
+        }
 
         $countplayer = 0;
         $countcharas = 0;
         $avaragecharas = 0;
+
         $where = "WHERE as_uid = 0";
 
         if (!empty($nocountaccounts)) {
             $where .= " AND NOT FIND_IN_SET(uid, '$nocountaccounts')";
         }
 
-        $get_user = $db->query("SELECT COUNT(*) AS count
-            FROM " . TABLE_PREFIX . "users
-            $where
-            ");
+        $get_user = $db->query("
+    SELECT COUNT(*) AS count
+    FROM " . TABLE_PREFIX . "users
+    $where
+");
 
-        $countplayer = $db->fetch_field($get_user, "count");
+        $countplayer = (int)$db->fetch_field($get_user, "count");
+
 
         $where = "";
+
         if (!empty($nocountaccounts)) {
             $where .= " WHERE NOT FIND_IN_SET(uid, '$nocountaccounts')";
         }
 
-        $get_charas = $db->query("SELECT COUNT(*) AS count
-            FROM " . TABLE_PREFIX . "users
-            $where
-            ");
+        $get_charas = $db->query("
+    SELECT COUNT(*) AS count
+    FROM " . TABLE_PREFIX . "users
+    $where
+");
+
+        $countcharas = (int)$db->fetch_field($get_charas, "count");
 
 
-        $countcharas = $db->fetch_field($get_charas, "count");
-
-
-        $avaragecharas = round($countcharas / $countplayer, 2);
+        if ($countplayer > 0) {
+            $avaragecharas = round($countcharas / $countplayer, 2);
+        } else {
+            $avaragecharas = 0;
+        }
 
         // Diagramme
 
